@@ -1,0 +1,53 @@
+.hide {
+  display: none;
+}
+
+.container {
+  position: relative;
+  margin-top: 30px;
+}
+
+.placeholder {
+  position: absolute;
+  top: 0;
+  color: grey;
+}
+
+.common p {
+  margin: 0;
+}
+
+.editor {
+  outline: none;
+  color: transparent;
+  caret-color: black;
+}
+
+.shower {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.nestedEditor {
+  height: 100%;
+  min-height: 20px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.underline {
+  text-decoration: underline;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+}
