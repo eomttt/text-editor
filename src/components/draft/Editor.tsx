@@ -19,7 +19,7 @@ export const Editor = () => {
       <button type="button" onMouseDown={handleClickBold}>
         B
       </button>
-      <div style={{ border: '1px solid black' }}>
+      <div style={{ border: '1px solid black', minHeight: '50px' }}>
         <DraftEditor editorState={editorState} onChange={setEditorState} />
       </div>
     </>

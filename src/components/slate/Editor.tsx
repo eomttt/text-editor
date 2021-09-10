@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable @typescript-eslint/no-use-before-define */
@@ -39,7 +40,7 @@ export const Editor = () => {
         </button>
       </div>
       <Editable
-        style={{ border: '1px solid black' }}
+        style={{ border: '1px solid black', minHeight: '50px' }}
         renderElement={renderElement}
         renderLeaf={renderLeaf}
         onKeyDown={event => {
