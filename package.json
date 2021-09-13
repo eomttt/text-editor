@@ -15,6 +15,8 @@
   "dependencies": {
     "@babel/runtime": "^7.15.4",
     "@editorjs/editorjs": "^2.22.2",
+    "@tiptap/extension-bold": "^2.0.0-beta.15",
+    "@tiptap/extension-underline": "^2.0.0-beta.16",
     "@tiptap/react": "^2.0.0-beta.66",
     "@tiptap/starter-kit": "^2.0.0-beta.104",
     "classnames": "^2.3.1",

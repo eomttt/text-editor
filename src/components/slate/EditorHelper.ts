@@ -1,33 +1,35 @@
-import { BaseEditor, Editor, Transforms } from 'slate';
-import { ReactEditor } from 'slate-react';
+import { Editor, Transforms, Element } from 'slate';
 
+type MarkType = 'bold' | 'italic' | 'underline' | 'strikethrough';
 export class EditorHelper {
-  private static isMarkActive(editor: BaseEditor & ReactEditor, format: 'bold') {
+  static isMarkActive(editor: Editor, format: MarkType) {
     const marks = Editor.marks(editor);
     return marks ? marks[format] === true : false;
   }
 
-  private static isBlockActive(editor: BaseEditor & ReactEditor, format: string) {
+  static isBlockActive(editor: Editor, format: string) {
     const [match] = Editor.nodes(editor, {
-      match: n => n.type === format,
+      // For ts Element.isElement(n)
+      match: n => Element.isElement(n) && n.type === format,
     });
 
     return !!match;
   }
 
-  static toggleBoldMark(editor: BaseEditor & ReactEditor) {
-    const isActive = this.isMarkActive(editor, 'bold');
-
-    if (isActive) {
-      Editor.removeMark(editor, 'bold');
+  static toggleMark(editor: Editor, type: MarkType) {
+    if (this.isMarkActive(editor, type)) {
+      Editor.removeMark(editor, type);
     } else {
-      Editor.addMark(editor, 'bold', true);
+      Editor.addMark(editor, type, true);
     }
   }
 
-  static toggleCodeBlock(editor: BaseEditor & ReactEditor) {
+  static toggleCodeBlock(editor: Editor) {
     // Determine whether any of the currently selected blocks are code blocks.
-    const isMatch = this.isBlockActive(editor, 'code');
-    Transforms.setNodes(editor, { type: isMatch ? 'paragraph' : 'code' }, { match: n => Editor.isBlock(editor, n) });
+    Transforms.setNodes(
+      editor,
+      { type: this.isBlockActive(editor, 'code') ? 'paragraph' : 'code' },
+      { match: n => Editor.isBlock(editor, n) },
+    );
   }
 }

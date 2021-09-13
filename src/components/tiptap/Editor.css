@@ -1,0 +1,12 @@
+.isActive {
+  background-color: blue;
+}
+
+.boldAttribute {
+  color: red;
+}
+
+.editor {
+  border: 1px solid black;
+  min-height: 50px;
+}

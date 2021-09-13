@@ -4,8 +4,14 @@ import { ReactEditor } from 'slate-react';
 
 declare module '*.css';
 
-type CustomElement = { type: 'paragraph' | 'code'; children: CustomText[] };
-type CustomText = { text: string; bold?: boolean };
+type CustomElement = { children: CustomText[]; type: 'paragraph' | 'code' };
+type CustomText = {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+};
 
 declare module 'slate' {
   interface CustomTypes {

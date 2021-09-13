@@ -1,11 +1,16 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-param-reassign */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable @typescript-eslint/no-use-before-define */
+import classNames from 'classnames';
+import { EditorHelper } from 'components/slate/EditorHelper';
+import { Element } from 'components/slate/Element';
+import { Leaf } from 'components/slate/Leaf';
 import React, { useMemo, useState } from 'react';
 import { createEditor, Descendant } from 'slate';
 import { Editable, RenderElementProps, RenderLeafProps, Slate, withReact } from 'slate-react';
-import { EditorHelper } from 'components/slate/EditorHelper';
+import Styles from './Editor.css';
 
 export const Editor = () => {
   const editor = useMemo(() => withReact(createEditor()), []);
@@ -22,27 +27,49 @@ export const Editor = () => {
       <div>
         <button
           type="button"
+          className={classNames(EditorHelper.isMarkActive(editor, 'bold') && Styles.isActive)}
           onMouseDown={event => {
             event.preventDefault();
-            EditorHelper.toggleBoldMark(editor);
+            EditorHelper.toggleMark(editor, 'bold');
           }}
         >
           B
         </button>
         <button
           type="button"
+          className={classNames(EditorHelper.isMarkActive(editor, 'italic') && Styles.isActive)}
           onMouseDown={event => {
             event.preventDefault();
-            EditorHelper.toggleCodeBlock(editor);
+            EditorHelper.toggleMark(editor, 'italic');
           }}
         >
-          Code Block
+          italic
+        </button>
+        <button
+          type="button"
+          className={classNames(EditorHelper.isMarkActive(editor, 'underline') && Styles.isActive)}
+          onMouseDown={event => {
+            event.preventDefault();
+            EditorHelper.toggleMark(editor, 'underline');
+          }}
+        >
+          underline
+        </button>
+        <button
+          type="button"
+          className={classNames(EditorHelper.isMarkActive(editor, 'strikethrough') && Styles.isActive)}
+          onMouseDown={event => {
+            event.preventDefault();
+            EditorHelper.toggleMark(editor, 'strikethrough');
+          }}
+        >
+          strikethrough
         </button>
       </div>
       <Editable
-        style={{ border: '1px solid black', minHeight: '50px' }}
-        renderElement={renderElement}
-        renderLeaf={renderLeaf}
+        className={Styles.editor}
+        renderElement={(props: RenderElementProps) => <Element {...props} />}
+        renderLeaf={(props: RenderLeafProps) => <Leaf {...props} />}
         onKeyDown={event => {
           if (!event.ctrlKey) {
             return;
@@ -56,7 +83,7 @@ export const Editor = () => {
             }
             case 'b': {
               event.preventDefault();
-              EditorHelper.toggleBoldMark(editor);
+              EditorHelper.toggleMark(editor, 'bold');
               break;
             }
             default: {
@@ -68,30 +95,3 @@ export const Editor = () => {
     </Slate>
   );
 };
-
-const CodeElement = (props: RenderElementProps) => (
-  <pre {...props.attributes}>
-    <code>{props.children}</code>
-  </pre>
-);
-
-const DefaultElement = (props: RenderElementProps) => <p {...props.attributes}>{props.children}</p>;
-
-const renderElement = (props: RenderElementProps) => {
-  switch (props.element.type) {
-    case 'code':
-      return <CodeElement {...props} />;
-    default:
-      return <DefaultElement {...props} />;
-  }
-};
-
-const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
-  if (leaf.bold) {
-    children = <strong>{children}</strong>;
-  }
-
-  return <span {...attributes}>{children}</span>;
-};
-
-const renderLeaf = (props: RenderLeafProps) => <Leaf {...props} />;
