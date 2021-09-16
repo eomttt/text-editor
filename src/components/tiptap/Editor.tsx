@@ -1,6 +1,9 @@
 import Bold from '@tiptap/extension-bold';
+import Dropcursor from '@tiptap/extension-dropcursor';
+import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
 import { Editor as TiptapEditor, EditorContent, useEditor } from '@tiptap/react';
+import { Slice, Fragment, Node, ResolvedPos } from 'prosemirror-model';
 import StarterKit from '@tiptap/starter-kit';
 import classNames from 'classnames';
 import { DownloadBtn, getJSONStringify } from 'components/DownloadBtn';
@@ -42,11 +45,38 @@ const MenuBar = ({ editor }: { editor: TiptapEditor | null }) => {
       >
         strikethrough
       </button>
+      <button
+        type="button"
+        onClick={() => {
+          const url = window.prompt('URL');
+
+          if (url) {
+            editor.chain().focus().setImage({ src: url }).run();
+          }
+        }}
+      >
+        Add image url
+      </button>
     </>
   );
 };
 
 export const Editor = () => {
+  function clipboardTextParser(text: string, context: ResolvedPos) {
+    const blocks = text.split(/(?:\r\n?|\n)/);
+    const nodes: Node[] = blocks.reduce((acc: Node[], cur: string) => {
+      const nodeJson: { [key: string]: any } = { type: 'paragraph' };
+      if (cur.length > 0) {
+        nodeJson.content = [{ type: 'text', text: cur }];
+      }
+      const node = Node.fromJSON(context.doc.type.schema, nodeJson);
+      acc.push(node);
+      return acc;
+    }, []);
+
+    return Slice.maxOpen(Fragment.fromArray(nodes));
+  }
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -54,8 +84,13 @@ export const Editor = () => {
       Bold.configure({
         HTMLAttributes: { class: Styles.boldAttribute },
       }),
+      Image,
+      Dropcursor,
     ],
     content: '<p>Hello World! 🌎️</p>',
+    editorProps: {
+      clipboardTextParser,
+    },
   });
 
   return (
