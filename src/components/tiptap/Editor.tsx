@@ -1,9 +1,10 @@
-import { Editor as TiptapEditor, EditorContent, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import Bold from '@tiptap/extension-bold';
 import Underline from '@tiptap/extension-underline';
-import React from 'react';
+import { Editor as TiptapEditor, EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import classNames from 'classnames';
+import { DownloadBtn, getJSONStringify } from 'components/DownloadBtn';
+import React from 'react';
 import Styles from './Editor.css';
 
 const MenuBar = ({ editor }: { editor: TiptapEditor | null }) => {
@@ -39,7 +40,7 @@ const MenuBar = ({ editor }: { editor: TiptapEditor | null }) => {
         onClick={() => editor.chain().focus().toggleStrike().run()}
         className={classNames([editor.isActive('strike') && Styles.isActive])}
       >
-        strike
+        strikethrough
       </button>
     </>
   );
@@ -61,6 +62,8 @@ export const Editor = () => {
     <>
       <MenuBar editor={editor} />
       <EditorContent className={Styles.editor} editor={editor} />
+      <DownloadBtn value={editor?.getJSON()} fileName="tiptap.json" />
+      <pre>{getJSONStringify(editor?.getJSON())}</pre>
     </>
   );
 };
