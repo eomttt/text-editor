@@ -5,8 +5,19 @@
 import classNames from 'classnames';
 import { getJSONStringify } from 'components/DownloadBtn';
 import React, { FormEvent, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { convertToEditorData, convertToHTML, EditorElementData, pasteTextHandler } from './converter';
+import { convertHTMLtoEditorData } from './convertToEditorData';
+import { convertEditorDataToHTML } from './convertToHTML';
 import Styles from './Editor.css';
+import { EditorElementData } from './type';
+
+const pasteTextHandler = (clipboardData: DataTransfer) => {
+  const paste = clipboardData.getData('text');
+  const pTag = document.createElement('p');
+  const pastedText = paste.replaceAll('\n', '<br>');
+  pTag.innerHTML = pastedText;
+
+  return pTag;
+};
 
 export const Editor = () => {
   const [state, setState] = useState<EditorElementData[]>([]);
@@ -16,7 +27,7 @@ export const Editor = () => {
 
   const handleInput = useCallback((e: FormEvent<HTMLDivElement>) => {
     const value = (e.target as HTMLElement).innerHTML;
-    setState(convertToEditorData(value));
+    setState(convertHTMLtoEditorData(value));
   }, []);
 
   const handleKeyDown = useCallback((evt: KeyboardEvent<HTMLDivElement>) => {
@@ -28,9 +39,23 @@ export const Editor = () => {
     }
   }, []);
 
+  const handleUploadImage = () => {
+    const res = window.prompt();
+    if (res && ref.current) {
+      const p = document.createElement('p');
+      const img = document.createElement('img');
+      img.setAttribute('src', res);
+      img.setAttribute('alt', 'test');
+      p.appendChild(img);
+      ref.current.appendChild(p);
+      setState(convertHTMLtoEditorData(ref.current.innerHTML));
+    }
+  };
+
   useEffect(() => {
     if (viewerRef.current) {
-      convertToHTML(viewerRef.current, state);
+      console.log('convertHTMLtoEditorData', state);
+      convertEditorDataToHTML(viewerRef.current, state);
     }
   }, [state]);
 
@@ -41,7 +66,7 @@ export const Editor = () => {
           const pastedTag = pasteTextHandler(event.clipboardData);
           ref.current.appendChild(pastedTag);
           window.getSelection()?.setBaseAndExtent(pastedTag, 0, pastedTag, pastedTag.childNodes.length);
-          setState(convertToEditorData(ref.current.innerHTML));
+          setState(convertHTMLtoEditorData(ref.current.innerHTML));
         }
 
         event.preventDefault();
@@ -57,6 +82,9 @@ export const Editor = () => {
       </button>
       <button type="button">ITALIC</button>
       <button type="button">UNDERLINE</button> */}
+      <button type="button" onClick={handleUploadImage}>
+        IMAGE
+      </button>
       <div
         id="editor"
         ref={ref}
