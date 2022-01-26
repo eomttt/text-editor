@@ -3,6 +3,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import classNames from 'classnames';
+import { getJSONStringify } from 'components/DownloadBtn';
 import React, { FormEvent, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { convertToEditorData, convertToHTML, EditorElementData, pasteTextHandler } from './converter';
 import Styles from './Editor.css';
@@ -72,6 +73,8 @@ export const Editor = () => {
       </div>
       <h1>Custom Editor Viewer</h1>
       <div ref={viewerRef} />
+      <h1>JSON FORMAT</h1>
+      <pre>{getJSONStringify(state)}</pre>
     </div>
   );
 };
