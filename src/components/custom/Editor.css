@@ -3,8 +3,6 @@
 }
 
 .container {
-  position: relative;
-  margin-top: 30px;
 }
 
 .placeholder {
@@ -18,9 +16,11 @@
 }
 
 .editor {
-  outline: none;
-  color: transparent;
-  caret-color: black;
+  position: relative;
+  margin-top: 30px;
+  border: 1px solid black;
+  min-height: 200px;
+  padding: 10px;
 }
 
 .shower {

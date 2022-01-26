@@ -3,81 +3,75 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import classNames from 'classnames';
-import { TextType } from 'components/custom/Buttons';
-import React, { FormEvent, useCallback, KeyboardEvent, useMemo, useRef, useState, useEffect } from 'react';
+import React, { FormEvent, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { convertToEditorData, convertToHTML, EditorElementData, pasteTextHandler } from './converter';
 import Styles from './Editor.css';
 
-const StyleMap = {
-  [TextType.BOLD]: Styles.bold,
-  [TextType.ITALIC]: Styles.italic,
-  [TextType.UNDERLINE]: Styles.underline,
-  [TextType.STRIKETHROUGH]: Styles.strikethrough,
-};
+export const Editor = () => {
+  const [state, setState] = useState<EditorElementData[]>([]);
 
-interface EditorProps {
-  activeButtons: TextType[];
-}
-
-export const Editor = ({ activeButtons }: EditorProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [beforeText, setBeforeText] = useState('');
-  const [text, setText] = useState('');
-  const [boldStart, setBoldStart] = useState(false);
-  const [isShowPlaceholder, setIsShowPlaceholder] = useState(true);
-
-  const editorStyles = useMemo(() => activeButtons.map(button => StyleMap[button]), [activeButtons]);
-
-  const setFocus = useCallback(() => ref?.current?.focus(), []);
-
-  const handleBlur = useCallback(() => {
-    console.log('blur');
-  }, []);
-
-  const handleFocus = useCallback(() => {
-    console.log('ref', ref?.current);
-  }, []);
+  const viewerRef = useRef<HTMLDivElement>(null);
 
   const handleInput = useCallback((e: FormEvent<HTMLDivElement>) => {
     const value = (e.target as HTMLElement).innerHTML;
-
-    setBeforeText(value);
-    setText(value);
-    setIsShowPlaceholder(!value);
+    setState(convertToEditorData(value));
   }, []);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
-    const { key } = e;
-
-    console.log('key', key);
+  const handleKeyDown = useCallback((evt: KeyboardEvent<HTMLDivElement>) => {
+    if (evt.key === 'Backspace') {
+      if ((evt.target as HTMLElement).innerHTML === '<p><br></p>') {
+        evt.preventDefault();
+        evt.stopPropagation();
+      }
+    }
   }, []);
 
   useEffect(() => {
-    if (activeButtons.includes(TextType.BOLD)) {
-      document.execCommand('bold');
+    if (viewerRef.current) {
+      convertToHTML(viewerRef.current, state);
     }
-  }, [activeButtons]);
+  }, [state]);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.addEventListener('paste', event => {
+        if (ref.current && event.clipboardData) {
+          const pastedTag = pasteTextHandler(event.clipboardData);
+          ref.current.appendChild(pastedTag);
+          window.getSelection()?.setBaseAndExtent(pastedTag, 0, pastedTag, pastedTag.childNodes.length);
+          setState(convertToEditorData(ref.current.innerHTML));
+        }
+
+        event.preventDefault();
+        return undefined;
+      });
+    }
+  }, []);
 
   return (
     <div className={Styles.container}>
-      <div className={classNames([Styles.shower, Styles.common])} dangerouslySetInnerHTML={{ __html: text }} />
-      <div onClick={setFocus} className={classNames([Styles.placeholder, !isShowPlaceholder && Styles.hide])}>
-        I am placeholder
-      </div>
+      {/* <button type="button" onClick={handleClickBold}>
+        BOLD
+      </button>
+      <button type="button">ITALIC</button>
+      <button type="button">UNDERLINE</button> */}
       <div
+        id="editor"
         ref={ref}
         contentEditable
         suppressContentEditableWarning
         className={classNames([Styles.editor, Styles.common])}
         aria-multiline
         onKeyDown={handleKeyDown}
-        onBlur={handleBlur}
-        onFocus={handleFocus}
         onInput={handleInput}
       >
         <p>
           <br />
         </p>
       </div>
+      <h1>Custom Editor Viewer</h1>
+      <div ref={viewerRef} />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { Editor, Transforms, Element } from 'slate';
+import { Editor, Element, Transforms } from 'slate';
 
 type MarkType = 'bold' | 'italic' | 'underline' | 'strikethrough';
 export class EditorHelper {
@@ -9,7 +9,6 @@ export class EditorHelper {
 
   static isBlockActive(editor: Editor, format: string) {
     const [match] = Editor.nodes(editor, {
-      // For ts Element.isElement(n)
       match: n => Element.isElement(n) && n.type === format,
     });
 
