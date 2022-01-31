@@ -1,10 +1,11 @@
 export type ElementType = 'paragraph' | 'image';
-export type StyleType = 'bold' | 'italic' | 'underline';
 export type AlignType = 'left' | 'center' | 'right' | 'justify';
+export type ContentAnnotationType = 'bold' | 'italic' | 'underline';
 
 export interface EditorContentData {
-  style?: StyleType[];
   content: string;
+  href?: string;
+  annotations?: Record<ContentAnnotationType, boolean>;
 }
 
 export interface EditorImageData {
@@ -12,7 +13,7 @@ export interface EditorImageData {
   src: string;
 }
 
-export interface EditorElementData {
+export interface EditorElement {
   type: ElementType;
   align?: AlignType;
   data: (EditorContentData | EditorImageData)[];

@@ -1,6 +1,6 @@
-import { EditorContentData, EditorElementData, EditorImageData, StyleType } from './type';
+import { ContentAnnotationType, EditorContentData, EditorElement, EditorImageData } from './type';
 
-const getStyleTag = (type: StyleType) => {
+const getAnnotationTag = (type: ContentAnnotationType) => {
   if (type === 'bold') {
     return 'strong';
   }
@@ -14,8 +14,10 @@ const getStyleTag = (type: StyleType) => {
 };
 
 const setContentHTML = (element: HTMLParagraphElement, data: EditorContentData) => {
-  if (data.style) {
-    const styleTags = data.style.map(style => document.createElement(getStyleTag(style)));
+  if (data.annotations) {
+    const styleTags = Object.keys(data.annotations).map(annotation =>
+      document.createElement(getAnnotationTag(annotation as ContentAnnotationType)),
+    );
     styleTags.forEach((styleTag, i) => {
       if (i === 0) {
         // eslint-disable-next-line no-param-reassign
@@ -39,7 +41,7 @@ const setImageHTML = (element: HTMLParagraphElement, data: EditorImageData) => {
   return element.appendChild(img);
 };
 
-export const convertEditorDataToHTML = (root: HTMLDivElement, editorData: EditorElementData[]) => {
+export const convertEditorDataToHTML = (root: HTMLDivElement, editorData: EditorElement[]) => {
   const base = document.createElement('div');
   editorData.forEach(({ type, data }) => {
     const tagElement = document.createElement('p');
