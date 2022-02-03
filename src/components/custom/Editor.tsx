@@ -44,7 +44,6 @@ function getNodesInRange(range: Range) {
   let node: Node | null = startContainer.parentNode;
   // walk parent nodes from start to common ancestor
   while (node) {
-    console.log('pp', node.parentNode);
     if (node.nodeType === TEXT_NODE_TYPE) {
       // modified to only add text nodes to the array
       nodes.unshift(node);
@@ -71,7 +70,24 @@ function getNodesInRange(range: Range) {
   return nodes as Text[];
 }
 
-function styleRange(range: Range) {
+// 자식의 중복 tag 있으면 제거
+const flattenChild = (node: Node, tagName: string, ancestorHasTag = false) => {
+  const { parentNode, firstChild, nodeName, nextSibling } = node;
+
+  if (nodeName === tagName && parentNode && node.firstChild && ancestorHasTag) {
+    parentNode?.replaceChild(node.firstChild, node);
+  }
+
+  if (firstChild) {
+    flattenChild(firstChild, tagName, ancestorHasTag || nodeName === tagName);
+  }
+
+  if (nextSibling) {
+    flattenChild(nextSibling, tagName, ancestorHasTag);
+  }
+};
+
+function styleRange(range: Range, tagName: string) {
   const startTextNode = (range.startContainer as Text).splitText(range.startOffset);
   const endTextNode = (range.endContainer as Text).splitText(range.endOffset).previousSibling as Text;
 
@@ -79,18 +95,14 @@ function styleRange(range: Range) {
     return;
   }
 
-  // // Adjust the range to contain the new start and end nodes
-  // // The offsets are not really important anymore but might as well set them correctly
   range.setStart(startTextNode, 0);
   range.setEnd(endTextNode, endTextNode.length);
 
-  // // Get an array of all text nodes within the range
   const textNodes = getNodesInRange(range) as Text[];
 
-  // // Place strong tags with style around each textNode
   textNodes.forEach(textNode => {
     if (textNode.nodeValue && textNode.parentNode) {
-      const strong = document.createElement('strong');
+      const strong = document.createElement(tagName);
       strong.appendChild(document.createTextNode(textNode.nodeValue));
       textNode.parentNode.replaceChild(strong, textNode);
     }
@@ -118,36 +130,44 @@ export const Editor = () => {
   }, []);
 
   const handleUploadImage = () => {
-    // const res = window.prompt();
-    // if (res && ref.current) {
-    //   const p = document.createElement('p');
-    //   const img = document.createElement('img');
-    //   img.setAttribute('src', res);
-    //   img.setAttribute('alt', 'test');
-    //   p.appendChild(img);
-    //   const sel = window.getSelection();
-    //   const range = sel.getRangeAt(0);
-    //   console.log('CHECK', sel, range);
-    //   // ref.current.appendChild(p);
-    //   // setState(convertHTMLtoEditorData(ref.current.innerHTML));
-    // }
+    const res = window.prompt();
+    const selection = window.getSelection();
+    const range = selection?.getRangeAt(0);
+    if (res && ref.current && range) {
+      const img = document.createElement('img');
+      img.setAttribute('src', res);
+      img.setAttribute('alt', 'test');
+
+      // 커서가 위치한 영역 뒤에 이미지 삽입
+      let imageSiblingNode: Node = range.startContainer;
+      while (imageSiblingNode.nodeName !== 'P') {
+        imageSiblingNode = imageSiblingNode.parentNode as Node;
+      }
+      imageSiblingNode.parentNode?.insertBefore(img, imageSiblingNode.nextSibling);
+    }
+  };
+
+  const handleSetItalic = () => {
+    const selection = window.getSelection();
+    const range = selection?.getRangeAt(0);
+
+    if (selection && range && ref.current?.firstChild) {
+      styleRange(range, 'EM');
+      flattenChild(ref.current.firstChild, 'EM');
+      // TODO: 커서 위치
+      selection.setPosition(range.startContainer);
+    }
   };
 
   const handleSetBold = () => {
     const selection = window.getSelection();
     const range = selection?.getRangeAt(0);
 
-    if (selection && range) {
-      styleRange(range);
-      // const strong = document.createElement('strong');
-      // const fragment = range.extractContents();
-      // strong.appendChild(fragment);
-      // strong.innerHTML = strong.innerHTML.replace('<strong>', '').replace('</strong>', '');
-
-      // const newFragment = document.createDocumentFragment();
-      // newFragment.appendChild(strong);
-      // console.log('newFragment', newFragment);
-      // range.insertNode(newFragment);
+    if (selection && range && ref.current?.firstChild) {
+      styleRange(range, 'STRONG');
+      flattenChild(ref.current.firstChild, 'STRONG');
+      // TODO: 커서 위치
+      selection.setPosition(range.startContainer);
     }
   };
 
@@ -176,13 +196,11 @@ export const Editor = () => {
 
   return (
     <div className={Styles.container}>
-      {/* <button type="button" onClick={handleClickBold}>
-        BOLD
-      </button>
-      <button type="button">ITALIC</button>
-      <button type="button">UNDERLINE</button> */}
       <button type="button" onClick={handleSetBold}>
         BOLD
+      </button>
+      <button type="button" onClick={handleSetItalic}>
+        ITALIC
       </button>
       <button type="button" onClick={handleUploadImage}>
         IMAGE
@@ -201,14 +219,18 @@ export const Editor = () => {
           <br />
         </p> */}
         <p>
-          123<strong>456</strong>789
+          <em>
+            <strong>123</strong>
+          </em>
+          <strong>456</strong>
+          789
         </p>
         <p>123456789</p>
         <p>
           123
-          <em>
-            <strong>456</strong>
-          </em>
+          <strong>
+            <em>456</em>
+          </strong>
           789
         </p>
       </div>

@@ -1,20 +1,19 @@
-export type ElementType = 'paragraph' | 'image';
-export type AlignType = 'left' | 'center' | 'right' | 'justify';
-export type ContentAnnotationType = 'bold' | 'italic' | 'underline';
-
-export interface EditorContentData {
-  content: string;
-  href?: string;
-  annotations?: Record<ContentAnnotationType, boolean>;
-}
+export type EditorElementType = 'paragraph' | 'image';
+export type EditorAlignType = 'left' | 'right' | 'center' | 'justify';
+export type EditorAnnotationType = 'bold' | 'italic' | 'underline';
 
 export interface EditorImageData {
   alt: string;
   src: string;
 }
 
+export interface EditorParagraphData {
+  content: string;
+  annotations?: Record<EditorAnnotationType, boolean>;
+}
+
 export interface EditorElement {
-  type: ElementType;
-  align?: AlignType;
-  data: (EditorContentData | EditorImageData)[];
+  type: EditorElementType;
+  align?: EditorAlignType;
+  data: (EditorParagraphData | EditorImageData)[];
 }
