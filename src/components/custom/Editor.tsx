@@ -42,10 +42,10 @@ function getNodesInRange(range: Range) {
   const nodes = [];
 
   let node: Node | null = startContainer.parentNode;
-  // walk parent nodes from start to common ancestor
+  // 부모로 올라가면서 찾음
   while (node) {
     if (node.nodeType === TEXT_NODE_TYPE) {
-      // modified to only add text nodes to the array
+      // nodes 에 추가된 text node 만 수정
       nodes.unshift(node);
     }
     if (node === commonAncestorContainer) {
@@ -55,10 +55,10 @@ function getNodesInRange(range: Range) {
   }
 
   node = startContainer;
-  // walk children and siblings from start until end is found
+  // 자식들과 이웃들을 돌아보며 찾음
   while (node) {
     if (node.nodeType === TEXT_NODE_TYPE) {
-      // modified to only add text nodes to the array
+      // nodes 에 추가된 text node 만 수정
       nodes.push(node);
     }
     if (node === endContainer) {
@@ -88,25 +88,25 @@ const flattenChild = (node: Node, tagName: string, ancestorHasTag = false) => {
 };
 
 function styleRange(range: Range, tagName: string) {
-  const startTextNode = (range.startContainer as Text).splitText(range.startOffset);
-  const endTextNode = (range.endContainer as Text).splitText(range.endOffset).previousSibling as Text;
+  const { startContainer, endContainer, startOffset, endOffset } = range;
+  const startTextNode = (startContainer as Text).splitText(startOffset);
+  const endTextNode = (endContainer as Text).splitText(endOffset).previousSibling as Text;
 
-  if (!endTextNode) {
-    return;
+  if (endTextNode) {
+    range.setStart(startTextNode, 0);
+    range.setEnd(endTextNode, endTextNode.length);
+
+    const textNodes = getNodesInRange(range) as Text[];
+
+    textNodes.forEach(textNode => {
+      if (textNode.nodeValue && textNode.parentNode) {
+        const strong = document.createElement(tagName);
+        strong.appendChild(document.createTextNode(textNode.nodeValue));
+        textNode.parentNode.replaceChild(strong, textNode);
+      }
+    });
+    console.log('endTextNode', endTextNode, endTextNode.parentNode, range.endContainer);
   }
-
-  range.setStart(startTextNode, 0);
-  range.setEnd(endTextNode, endTextNode.length);
-
-  const textNodes = getNodesInRange(range) as Text[];
-
-  textNodes.forEach(textNode => {
-    if (textNode.nodeValue && textNode.parentNode) {
-      const strong = document.createElement(tagName);
-      strong.appendChild(document.createTextNode(textNode.nodeValue));
-      textNode.parentNode.replaceChild(strong, textNode);
-    }
-  });
 }
 
 export const Editor = () => {
@@ -116,8 +116,8 @@ export const Editor = () => {
   const viewerRef = useRef<HTMLDivElement>(null);
 
   const handleInput = useCallback((e: FormEvent<HTMLDivElement>) => {
-    const value = (e.target as HTMLElement).innerHTML;
-    setState(convertHTMLtoEditorData(value));
+    convertHTMLtoEditorData(e.target as Node);
+    // setState(convertHTMLtoEditorData(e.target as Node));
   }, []);
 
   const handleKeyDown = useCallback((evt: KeyboardEvent<HTMLDivElement>) => {
@@ -153,9 +153,8 @@ export const Editor = () => {
 
     if (selection && range && ref.current?.firstChild) {
       styleRange(range, 'EM');
-      flattenChild(ref.current.firstChild, 'EM');
+      // flattenChild(ref.current.firstChild, 'EM');
       // TODO: 커서 위치
-      selection.setPosition(range.startContainer);
     }
   };
 
@@ -173,7 +172,6 @@ export const Editor = () => {
 
   useEffect(() => {
     if (viewerRef.current) {
-      console.log('convertHTMLtoEditorData', state);
       convertEditorDataToHTML(viewerRef.current, state);
     }
   }, [state]);
@@ -185,7 +183,7 @@ export const Editor = () => {
           const pastedTag = pasteTextHandler(event.clipboardData);
           ref.current.appendChild(pastedTag);
           window.getSelection()?.setBaseAndExtent(pastedTag, 0, pastedTag, pastedTag.childNodes.length);
-          setState(convertHTMLtoEditorData(ref.current.innerHTML));
+          setState(convertHTMLtoEditorData(ref.current));
         }
 
         event.preventDefault();

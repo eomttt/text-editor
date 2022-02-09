@@ -27,17 +27,26 @@ const getImageData = (htmlString: string): EditorElement => {
   };
 };
 
-export const convertHTMLtoEditorData = (htmlString: string): EditorElement[] => {
-  const arr = htmlString.match(/<p>([^]*?)<\/p>/g);
+const setEditorData = (node: Node) => {
+  const { firstChild, nextSibling } = node;
 
-  if (!arr) {
-    return [];
+  if (firstChild) {
+    setEditorData(firstChild);
   }
 
-  return arr.reduce<EditorElement[]>((acc, cur) => {
-    const innerHTML = cur.replaceAll('<p>', '').replaceAll('</p>', '').replaceAll('<br>', '\n');
-    const type = innerHTML.includes('<img') ? 'image' : 'paragraph';
+  if (nextSibling) {
+    setEditorData(nextSibling);
+  }
+};
 
-    return type === 'image' ? [...acc, getImageData(innerHTML)] : [...acc, getContentData(innerHTML)];
-  }, []);
+export const convertHTMLtoEditorData = (node: Node) => {
+  const { parentNode, firstChild, nodeName, nextSibling } = node;
+
+  // if (nodeName === tagName && parentNode && node.firstChild && ancestorHasTag) {
+  //   parentNode?.replaceChild(node.firstChild, node);
+  // }
+
+  if (firstChild) {
+    setEditorData(firstChild);
+  }
 };
